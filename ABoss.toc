@@ -1,0 +1,16 @@
+## Interface: 16001
+## Title: ABoss
+## Notes: Encounter timer bars, warnings, pull and break timers, kill history
+## Version: 0.1.0
+## Category: Combat
+## IconTexture: Interface\Icons\Ability_Creature_Cursed_02
+## Dependencies: ACore
+## SavedVariables: ABossDB
+
+Core.lua
+Bars.lua
+Messages.lua
+Timeline.lua
+Timers.lua
+History.lua
+Options.lua
