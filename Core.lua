@@ -20,7 +20,7 @@ local defaults = {
 	history = {},
 }
 
-ACore.New(ADDON, ns, { db = "ABossDB", defaults = defaults })
+ACore.New(ADDON, ns, { db = "ABossDB", defaults = defaults, profile = true, shared = { "history" } })
 
 function ns.Now()
 	return GetTime and GetTime() or 0
