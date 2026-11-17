@@ -47,15 +47,36 @@ function Timers.Pull(n)
 	ns.Say("Pull in " .. math.floor(n + 0.5))
 end
 
-function Timers.Break(minutes)
+local PREFIX = "ABoss"
+
+local function share(text)
+	local channel = ns.GroupChannel()
+	if not channel or not ns.db.sync then return end
+	if not C_ChatInfo or not C_ChatInfo.SendAddonMessage then return end
+	pcall(C_ChatInfo.SendAddonMessage, PREFIX, text, channel)
+end
+
+function Timers.Break(minutes, from)
 	if not minutes or minutes <= 0 then
 		if ns.Bars.Stop("break") then
 			ns.Messages.Show("Break cancelled", 1, false)
-			ns.Say("Break cancelled")
+			if not from then
+				ns.Say("Break cancelled")
+				share("break 0")
+			end
 		end
 		return
 	end
 	minutes = math.min(minutes, 60)
+	if from then
+		ns.Bars.Start("break", "Break", minutes * 60, "Interface\\Icons\\INV_Drink_07", {
+			color = "rest", plain = true,
+			onDone = function() ns.Messages.Show("Break is over", "good") end,
+		})
+		ns.Messages.Show("Break: " .. ns.Clock(minutes * 60), "info", false)
+		return
+	end
+	share("break " .. math.floor(minutes * 60 + 0.5))
 	ns.Bars.Start("break", "Break", minutes * 60, "Interface\\Icons\\INV_Drink_07", {
 		color = "rest", plain = true,
 		onDone = function()
@@ -89,6 +110,36 @@ ns:On("START_PLAYER_COUNTDOWN", function(_, left, total)
 		return
 	end
 	startPull(left, false)
+end)
+
+local function own(sender)
+	local me = UnitName and UnitName("player")
+	if ns.IsSecret(me) or type(me) ~= "string" then return false end
+	return sender == me or sender:match("^([^-]+)") == me
+end
+
+local function trusted(sender)
+	if not (IsInRaid and IsInRaid()) then return true end
+	local short = Ambiguate and Ambiguate(sender, "short") or sender
+	if UnitIsGroupLeader and UnitIsGroupLeader(short) then return true end
+	if UnitIsGroupAssistant and UnitIsGroupAssistant(short) then return true end
+	return false
+end
+
+ns:On("CHAT_MSG_ADDON", function(prefix, text, channel, sender)
+	if ns.IsSecret(prefix) or prefix ~= PREFIX or not ns.db.sync then return end
+	if ns.IsSecret(text) or ns.IsSecret(channel) or ns.IsSecret(sender) then return end
+	if type(text) ~= "string" or type(sender) ~= "string" then return end
+	if channel ~= "PARTY" and channel ~= "RAID" then return end
+	if own(sender) or not trusted(sender) then return end
+	local n = tonumber(text:match("^break (%d+)$"))
+	if n then Timers.Break(math.min(n, 3600) / 60, sender) end
+end)
+
+ns:Listen("LOGIN", function()
+	if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then
+		pcall(C_ChatInfo.RegisterAddonMessagePrefix, PREFIX)
+	end
 end)
 
 ns:On("CANCEL_PLAYER_COUNTDOWN", function()

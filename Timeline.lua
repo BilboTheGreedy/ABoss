@@ -25,10 +25,10 @@ end
 local function color(info)
 	local severity = ns.Plain(info.severity, "number")
 	local icons = ns.Plain(info.icons, "number")
-	local set = Enum and Enum.EncounterTimelineIconSet
-	if icons and set and bit and bit.band then
-		if set.Deadly and bit.band(icons, set.Deadly) ~= 0 then return 2 end
-		if set.Enrage and bit.band(icons, set.Enrage) ~= 0 then return 2 end
+	local mask = Enum and Enum.EncounterEventIconmask
+	if icons and bit and bit.band then
+		if bit.band(icons, mask and mask.DeadlyEffect or 1) ~= 0 then return 2 end
+		if bit.band(icons, mask and mask.EnrageEffect or 2) ~= 0 then return 2 end
 	end
 	if severity and severity >= 0 and severity <= 2 then return severity end
 	return 0
@@ -46,7 +46,7 @@ local function add(info, left)
 		if ok then opts.timer = timer end
 	end
 	local text = info.spellName
-	if text == nil then text = "Ability" end
+	if type(text) == "nil" then text = "Ability" end
 	local bar = ns.Bars.Start(key(id), text, info.duration, info.iconFileID, opts)
 	if bar and state(id) == PAUSED then ns.Bars.Pause(key(id)) end
 end

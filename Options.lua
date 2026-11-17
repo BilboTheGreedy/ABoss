@@ -22,10 +22,7 @@ function ns.OptionEntries()
 	local db = ns.db
 	local entries = {
 		{ text = "ABoss", title = true },
-		{ text = db.locked and "Unlock to move" or "Lock in place", func = function()
-			db.locked = not db.locked
-			apply()
-		end },
+		UI.Check(db, "locked", "Lock position", apply),
 		{ text = "Run a test", func = ns.Test },
 		{ text = "Boss history", func = function() ns.History.Toggle() end },
 		{ text = "Show", title = true },
@@ -37,6 +34,7 @@ function ns.OptionEntries()
 		UI.Check(db, "countdown", "Count the last 5 seconds of a pull", apply),
 		UI.Check(db, "readycheck", "Ready check bar", apply),
 		UI.Check(db, "announce", "Announce pull and break to the group", apply),
+		UI.Check(db, "sync", "Share break timers with the group", apply),
 		{ text = "Bars grow", title = true },
 		{ text = "Down", checked = db.grow == "DOWN", func = function() db.grow = "DOWN" apply() end },
 		{ text = "Up", checked = db.grow == "UP", func = function() db.grow = "UP" apply() end },

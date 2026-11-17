@@ -108,22 +108,23 @@ end
 
 function Messages.Apply()
 	if not ns.db then return end
-	if not frame and not ns.db.locked then build() end
-	if frame then
-		frame:Restore()
-		frame.handle:SetShown(not ns.db.locked)
-	end
+	if not frame then build() end
+	frame:Restore()
+	frame.handle:SetShown(not ns.db.locked)
 end
 
 local function warning(info)
 	if not ns.db.warnings or type(info) ~= "table" then return end
-	local show = info.shouldShowWarning
-	if show ~= nil and not ns.IsSecret(show) and show == false then return end
+	if ns.Plain(info.shouldShowWarning, "boolean") == false then return end
 	local text = info.text
-	if text == nil then return end
+	if type(text) == "nil" then return end
+	local caster, target = info.casterName, info.targetName
+	if type(caster) == "nil" then caster = "" end
+	if type(target) == "nil" then target = "" end
+	local ok, formatted = pcall(string.format, text, caster, target)
+	if ok and type(formatted) ~= "nil" then text = formatted end
 	local severity = ns.Plain(info.severity, "number") or 0
-	local play = info.shouldPlaySound
-	if play ~= nil and not ns.IsSecret(play) and play == false then play = false else play = true end
+	local play = ns.Plain(info.shouldPlaySound, "boolean") ~= false
 	Messages.Show(text, severity, play)
 end
 

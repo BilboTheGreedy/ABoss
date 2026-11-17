@@ -102,8 +102,7 @@ local function paint(bar)
 	local c = COLORS[bar.color] or COLORS[0]
 	f:SetColor(c[1], c[2], c[3], 0.9)
 	f.left:SetText(bar.text)
-	if bar.icon ~= nil then
-		f.icon:SetTexture(bar.icon)
+	if type(bar.icon) ~= "nil" and pcall(f.icon.SetTexture, f.icon, bar.icon) then
 		f.icon:Show()
 	else
 		f.icon:Hide()
@@ -201,8 +200,10 @@ function Bars.Start(id, text, duration, icon, opts)
 		bar.expires = 0
 		bar.frame.right:SetText("")
 		local done = false
-		if opts.timer and bar.frame.SetTimerDuration then
-			done = pcall(bar.frame.SetTimerDuration, bar.frame, opts.timer)
+		if type(opts.timer) ~= "nil" and bar.frame.SetTimerDuration then
+			local interp = Enum and Enum.StatusBarInterpolation and Enum.StatusBarInterpolation.Immediate or 0
+			local dir = Enum and Enum.StatusBarTimerDirection and Enum.StatusBarTimerDirection.RemainingTime or 1
+			done = pcall(bar.frame.SetTimerDuration, bar.frame, opts.timer, interp, dir)
 		end
 		if not done then
 			bar.frame:SetMinMaxValues(0, 1)
@@ -261,14 +262,12 @@ end
 
 function Bars.Apply()
 	if not ns.db then return end
-	for key, a in pairs(anchors) do
+	anchor("normal")
+	anchor("emph")
+	for _, a in pairs(anchors) do
 		a:SetWidth(ns.db.width)
 		a:Restore()
 		a.handle:SetShown(not ns.db.locked)
-	end
-	if not ns.db.locked then
-		anchor("normal")
-		anchor("emph")
 	end
 	if not ns.db.emphasize then
 		for _, bar in ipairs(Bars.active) do bar.emph = false end

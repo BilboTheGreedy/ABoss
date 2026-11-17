@@ -9,6 +9,7 @@ local defaults = {
 	sound = "RAID_WARNING",
 	countdown = true,
 	announce = true,
+	sync = true,
 	readycheck = true,
 	width = 220,
 	height = 18,
@@ -35,7 +36,7 @@ function ns.Clock(seconds)
 end
 
 function ns.Plain(v, kind)
-	if v == nil or ns.IsSecret(v) then return nil end
+	if ns.IsSecret(v) or type(v) == "nil" then return nil end
 	if kind and type(v) ~= kind then return nil end
 	return v
 end
@@ -81,5 +82,6 @@ ACore.Register({
 	title = "ABoss",
 	slash = "/aboss",
 	desc = "encounter timers and warnings",
+	options = function() return ns.OptionEntries() end,
 	toggle = function() ns.OpenOptions() end,
 })
